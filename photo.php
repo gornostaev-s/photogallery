@@ -23,28 +23,10 @@ $opt = [
 ];
 $pdo = new PDO($dsn, $user, $pass, $opt);
 
-// SELECT * FROM table1 LEFT JOIN table2 ON table1.taskid = table2.id
-
-// $data = $pdo->query('SELECT * FROM cities_data')->fetchAll(PDO::FETCH_ASSOC);
-//
-// $city = $data[0]['city_name'];
-// $addr = $data[0]['city_addr'];
-// $tel = $data[0]['city_tel'];
-//
-// foreach($data as $cities){
-//     if($_SERVER['HTTP_HOST'] == $cities['route']){
-//         //echo $cities['city_name'];
-//         $city = $cities['city_name'];
-//         $addr = $cities['city_addr'];
-//         $tel = $cities['city_tel'];
-//     }
-// }
-
 
 class Photo {
     function adduser($userdata = array()){
         global $pdo;
-        //return 'INSERT INTO `user_id` (`user_mail`, `user_birthd`) VALUES ("'.$userdata["mail"].'", "'.$userdata["date"].'");';
         $pdo->query('INSERT INTO `user_id` (`user_mail`, `user_birthd`, `user_tel`) VALUES ("'.$userdata["mail"].'", "'.$userdata["date"].'","'.$userdata["tel"].'");');
         $id = $pdo->lastInsertId();
         return $id;
@@ -54,14 +36,12 @@ class Photo {
         $uploaddir  = 'img';
         $files      = $_FILES; // полученные файл
         $photoerr = array();
-        // echo ini_get('upload_max_filesize');
         foreach( $files as $file ){
 
             $cond = true;
             $limitsize = 1048576;
 
             if($file['size'] > $limitsize){
-                //var_dump($photoerr);
                 array_push($photoerr, 'Файл '.$file['name'].' не был загружен (максимальный размер файла 1 Мбайт)' );
             }else{
                 $file_name    = $file['name'];
@@ -73,31 +53,24 @@ class Photo {
                     do{
                         $i++;
                         $file_name = $realname . '_'.$i. '.' . $fileinfo["extension"];
-                        //echo $file_name;
                         if(!file_exists("$uploaddir/$file_name")){
                             $condition = false;
-                            //var_dump("$uploaddir/$file_name");
                             move_uploaded_file( $file['tmp_name'], "$uploaddir/$file_name" );
                             $path = "/$uploaddir/$file_name";
                             $pdo->query('INSERT INTO `user_photo` (`user_id`,`photo_path`) VALUES ("'.$data["id"].'", "'.$path.'")');
                         }
-                        //$file_name = $realname . '_'.$i. '.' . $fileinfo["extension"];
                     }while($condition);
                 } else {
                     move_uploaded_file( $file['tmp_name'], "$uploaddir/$file_name" );
                     $path = "/$uploaddir/$file_name";
-                    // echo $path;
                     $pdo->query('INSERT INTO `user_photo` (`user_id`,`photo_path`) VALUES ("'.$data["id"].'", "'.$path.'")');
                 }
             }
 
     	}
-
-        // var_dump($photoerr);
         return $photoerr;
-
-
     }
+
     function getUserId($data = array()){
         global $pdo;
         $id = 0;
@@ -131,10 +104,6 @@ class Photo {
     }
 }
 
-
-// 1601510400 cегодня
-// 568080000 18 лет
-
 if($_POST){
     $error = array();
     $resultarray = array();
@@ -159,13 +128,10 @@ if($_POST){
             if($interval->days < 6575){
                 $error = array_merge($error,array('dateerror' => array('Вам меньше 18 лет')));
             }
-            //array_push($error['dateerror'],$date->format('m.d.Y'));
         }
         if(!$_FILES){
             $error = array_merge($error,array('photoerror' => array('Выберите фото для загрузки')));
         }
-
-        //echo count($error);
         if(count($error) == 0){
             $userdata = array(
                 'mail'  => $_POST['email'],
@@ -185,7 +151,6 @@ if($_POST){
                 if($photoerror){
                     $error = array_merge($error,array('photoerror' => $photoerror));
                 }
-                //var_dump($photoerror);
             }
         }
 
@@ -194,13 +159,10 @@ if($_POST){
     }
     if(isset($_POST['get'])){
         $page = $_POST['page'];
-        // echo $page;
         $idarray = $photo->getAllUsersId($page);
-        //var_dump($idarray);
         foreach ($idarray as $id) {
             $userdata = $photo->getUserData($id['id']);
             $tel = '+7 (ХХХ) ХХХ-'.substr($userdata[0]['user_tel'], 13, 17);
-            //var_dump($tel);
             $photodata = $photo->getPhotos($id['id']);
             if($photodata){
                 $data = '<div class="row photoblock">';
