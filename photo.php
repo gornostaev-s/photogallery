@@ -115,8 +115,8 @@ class Photo {
 
     function getAllUsersId($i = 0){
         global $pdo;
-        $lim = 2;
-        $s = $i * 2;
+        $lim = 10;
+        $s = $i * $lim;
         return $pdo->query('SELECT `id` FROM `user_id` LIMIT '.$s.', '.$lim.'')->fetchAll(PDO::FETCH_ASSOC);
     }
 
